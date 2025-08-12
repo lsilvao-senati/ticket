@@ -74,5 +74,47 @@ class Ticket extends Database {
             return null;
         }
     }
+
+    /**
+     * Añade un archivo adjunto a un ticket.
+     * @param int $ticket_id El ID del ticket.
+     * @param string $ruta_archivo La ruta donde se guarda el archivo.
+     * @param string $nombre_archivo El nombre original del archivo.
+     * @return bool True si se añadió correctamente, False en caso de error.
+     */
+    public function addAttachment($ticket_id, $ruta_archivo, $nombre_archivo) {
+        $stmt = $this->conn->prepare(
+            "INSERT INTO adjuntos (ticket_id, ruta_archivo, nombre_archivo) VALUES (?, ?, ?)"
+        );
+        $stmt->bind_param("iss", $ticket_id, $ruta_archivo, $nombre_archivo);
+        return $stmt->execute();
+    }
+
+    /**
+     * Actualiza el estado de un ticket.
+     * @param int $ticket_id El ID del ticket.
+     * @param string $estado El nuevo estado.
+     * @return bool True si se actualizó correctamente, False en caso de error.
+     */
+    public function updateStatus($ticket_id, $estado) {
+        $stmt = $this->conn->prepare(
+            "UPDATE tickets SET estado = ? WHERE id = ?"
+        );
+        $stmt->bind_param("si", $estado, $ticket_id);
+        return $stmt->execute();
+    }
+
+    /**
+     * Obtiene los archivos adjuntos de un ticket.
+     * @param int $ticket_id El ID del ticket.
+     * @return array Un array con los datos de los adjuntos.
+     */
+    public function getAttachments($ticket_id) {
+        $stmt = $this->conn->prepare("SELECT * FROM adjuntos WHERE ticket_id = ?");
+        $stmt->bind_param("i", $ticket_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        return $result->fetch_all(MYSQLI_ASSOC);
+    }
 }
 ?>
