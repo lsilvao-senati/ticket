@@ -32,6 +32,37 @@
     </div>
     <?php endif; ?>
 
+    <?php if (isset($adjuntos) && !empty($adjuntos)): ?>
+    <div class="ticket-attachments">
+        <h3>Archivos Adjuntos</h3>
+        <ul>
+            <?php foreach ($adjuntos as $adjunto): ?>
+                <li>
+                    <a href="<?php echo htmlspecialchars($adjunto['ruta_archivo']); ?>" target="_blank">
+                        <?php echo htmlspecialchars($adjunto['nombre_archivo']); ?>
+                    </a>
+                </li>
+            <?php endforeach; ?>
+        </ul>
+    </div>
+    <?php endif; ?>
+
+    <?php if (isset($_SESSION['user_rol']) && $_SESSION['user_rol'] === 'desarrollador'): ?>
+    <div class="ticket-actions">
+        <h3>Cambiar Estado</h3>
+        <form action="tickets.php?action=update_status" method="POST">
+            <input type="hidden" name="ticket_id" value="<?php echo htmlspecialchars($ticket['id']); ?>">
+            <select name="estado">
+                <option value="abierto" <?php echo ($ticket['estado'] === 'abierto') ? 'selected' : ''; ?>>Abierto</option>
+                <option value="en_proceso" <?php echo ($ticket['estado'] === 'en_proceso') ? 'selected' : ''; ?>>En Proceso</option>
+                <option value="resuelto" <?php echo ($ticket['estado'] === 'resuelto') ? 'selected' : ''; ?>>Resuelto</option>
+                <option value="cerrado" <?php echo ($ticket['estado'] === 'cerrado') ? 'selected' : ''; ?>>Cerrado</option>
+            </select>
+            <button type="submit">Actualizar Estado</button>
+        </form>
+    </div>
+    <?php endif; ?>
+
     <a href="tickets.php?action=list">Volver a la lista</a>
 
 <?php else: ?>

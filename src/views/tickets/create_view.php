@@ -4,7 +4,7 @@
     <p class="error"><?php echo htmlspecialchars($error); ?></p>
 <?php endif; ?>
 
-<form action="crear_ticket.php" method="POST">
+<form action="crear_ticket.php" method="POST" enctype="multipart/form-data">
 
     <div>
         <label for="titulo">Título de la solicitud:</label>
@@ -47,6 +47,11 @@
             <label for="pasos_reproducir">Pasos para reproducir el error (si es un bug):</label>
             <textarea id="pasos_reproducir" name="pasos_reproducir" rows="6"></textarea>
             <small>Describe el camino exacto para que el equipo técnico pueda replicar el problema.</small>
+        </div>
+        <div>
+            <label for="adjunto">Capturas de pantalla o videos (opcional):</label>
+            <input type="file" id="adjunto" name="adjunto">
+            <small>Adjunta cualquier material visual que pueda ayudar a entender la solicitud.</small>
         </div>
     </fieldset>
 

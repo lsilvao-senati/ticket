@@ -36,14 +36,52 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $error = "Los campos Título, Descripción, Tipo y Prioridad son obligatorios.";
     } else {
         $ticketModel = new Ticket();
-        $ticket_id = $ticketModel->create($data);
+        // Manejo de adjuntos antes de crear el ticket para validación
+        $adjunto_validado = true;
+        if (isset($_FILES['adjunto']) && $_FILES['adjunto']['error'] === UPLOAD_ERR_OK) {
+            $max_size = 5 * 1024 * 1024; // 5 MB
+            $allowed_types = ['image/jpeg', 'image/png', 'application/pdf', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
+            $file_size = $_FILES['adjunto']['size'];
+            $file_type = $_FILES['adjunto']['type'];
 
-        if ($ticket_id) {
-            // Redirigir al dashboard o a una página de lista de tickets
-            header('Location: dashboard.php?status=ticket_created');
-            exit();
-        } else {
-            $error = "Hubo un error al crear el ticket. Por favor, inténtelo de nuevo.";
+            if ($file_size > $max_size) {
+                $error = "El archivo es demasiado grande. El tamaño máximo es 5 MB.";
+                $adjunto_validado = false;
+            } elseif (!in_array($file_type, $allowed_types)) {
+                $error = "Tipo de archivo no permitido. Solo se aceptan JPG, PNG, PDF, DOCX.";
+                $adjunto_validado = false;
+            }
+        }
+
+        if ($adjunto_validado) {
+            $ticketModel = new Ticket();
+            $ticket_id = $ticketModel->create($data);
+
+            if ($ticket_id) {
+                // Si hay un adjunto, procesarlo
+                if (isset($_FILES['adjunto']) && $_FILES['adjunto']['error'] === UPLOAD_ERR_OK) {
+                    $uploadDir = __DIR__ . '/uploads/';
+                    $nombre_original = basename($_FILES['adjunto']['name']);
+                    $nombre_unico = uniqid() . '-' . $nombre_original;
+                    $ruta_destino = $uploadDir . $nombre_unico;
+
+                    if (move_uploaded_file($_FILES['adjunto']['tmp_name'], $ruta_destino)) {
+                        $ticketModel->addAttachment($ticket_id, 'uploads/' . $nombre_unico, $nombre_original);
+                        // Todo salió bien, redirigir
+                        header('Location: dashboard.php?status=ticket_created');
+                        exit();
+                    } else {
+                        $error = "El ticket fue creado, pero hubo un error al subir el archivo adjunto.";
+                        // Opcional: considerar borrar el ticket si el adjunto es crítico
+                    }
+                } else {
+                    // No hay adjunto, el ticket se creó bien, redirigir
+                    header('Location: dashboard.php?status=ticket_created');
+                    exit();
+                }
+            } else {
+                $error = "Hubo un error al crear el ticket. Por favor, inténtelo de nuevo.";
+            }
         }
     }
 }
